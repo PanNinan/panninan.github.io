@@ -8,3 +8,5 @@ scripts/logs/
 .DS_Store
 .idea/
 .workbuddy/
+package-lock.json
+
