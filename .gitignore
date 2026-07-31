@@ -4,6 +4,8 @@ public/
 .venv/
 db.json
 tools/logs/
+__pycache__/
+*.pyc
 *.log
 .DS_Store
 .idea/
