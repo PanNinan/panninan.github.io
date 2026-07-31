@@ -28,6 +28,14 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('tools/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install Python dependencies
         run: pip install -r tools/requirements.txt
 
@@ -57,8 +65,16 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install Node dependencies
-        run: npm install
+        run: yarn install
 
       - name: Build site (hexo generate, 含 compress 钩子)
         run: npx hexo generate

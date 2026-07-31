@@ -112,3 +112,18 @@ compress: true
 # 趋势表专属样式注入（见 scripts/table-style-hook.js）
 # 仅在主主题为 landscape 时生效；设为 false 可强制关闭
 table_style: false
+
+# 站点地图与 RSS 订阅（hexo 级插件，与主题无关）
+# 生成 public/sitemap.xml 与 public/atom.xml、public/rss2.xml
+sitemap:
+  path: sitemap.xml
+
+feed:
+  type:
+    - atom
+    - rss2
+  path:
+    - atom.xml
+    - rss2.xml
+  limit: 0
+  content: false
