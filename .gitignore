@@ -6,3 +6,5 @@ db.json
 scripts/logs/
 *.log
 .DS_Store
+.idea/
+.workbuddy/
