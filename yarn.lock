@@ -41,6 +41,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@nodable/entities@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmmirror.com/@nodable/entities/-/entities-3.0.0.tgz#694703bc864d30eaed55c2e3def00dbd61493670"
+  integrity sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw==
+
 "@tootallnate/once@2":
   version "2.0.1"
   resolved "https://registry.npmmirror.com/@tootallnate/once/-/once-2.0.1.tgz"
@@ -105,6 +110,11 @@ anymatch@~3.1.2:
   dependencies:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
+
+anynum@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/anynum/-/anynum-1.0.1.tgz#2aac00e08dfad3726c1d462e60dbc2f831659a44"
+  integrity sha512-N6//FLET/tXYNM/F6ABca1oH6fWB+KlTt909Le28WMDBk8oaT4vY17DCrwg2MvmuqUKt3Ni4N5dGJ/EoBgcO6A==
 
 archy@^1.0.0:
   version "1.0.0"
@@ -429,7 +439,7 @@ domutils@^2.8.0:
     domelementtype "^2.2.0"
     domhandler "^4.2.0"
 
-domutils@^3.1.0:
+domutils@^3.1.0, domutils@^3.2.2:
   version "3.2.2"
   resolved "https://registry.npmmirror.com/domutils/-/domutils-3.2.2.tgz"
   integrity sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==
@@ -496,6 +506,11 @@ entities@^6.0.0:
   version "6.0.1"
   resolved "https://registry.npmmirror.com/entities/-/entities-6.0.1.tgz"
   integrity sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==
+
+entities@^7.0.0, entities@^7.0.1:
+  version "7.0.1"
+  resolved "https://registry.npmmirror.com/entities/-/entities-7.0.1.tgz#26e8a88889db63417dcb9a1e79a3f1bc92b5976b"
+  integrity sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==
 
 es-define-property@^1.0.1:
   version "1.0.1"
@@ -564,6 +579,34 @@ fast-equals@^3.0.1:
   version "3.0.3"
   resolved "https://registry.npmmirror.com/fast-equals/-/fast-equals-3.0.3.tgz"
   integrity sha512-NCe8qxnZFARSHGztGMZOO/PC1qa5MIFB5Hp66WdzbCRAz8U8US3bx1UTgLS49efBQPcUtO9gf5oVEY8o7y/7Kg==
+
+fast-xml-builder@^1.2.0:
+  version "1.3.0"
+  resolved "https://registry.npmmirror.com/fast-xml-builder/-/fast-xml-builder-1.3.0.tgz#bc849804796fe47bf915022dd939b0fc30ba455d"
+  integrity sha512-F74cZEdCvuw9P41GAC3rod4X04jjWGM1JPEv/GWSqFTWLsdyMSBMBMlm9Hk3GLBgLBbdBNY8yee0pQh2RBVESQ==
+  dependencies:
+    path-expression-matcher "^1.6.2"
+    xml-naming "^0.3.0"
+
+fast-xml-parser@^5.3.3:
+  version "5.10.1"
+  resolved "https://registry.npmmirror.com/fast-xml-parser/-/fast-xml-parser-5.10.1.tgz#19313f7c9386c47fa4a1de527547b73ed2cfcede"
+  integrity sha512-IEMIf7298kXuZSRFoGfMYrl7is8LpavODgbNz1cwIudv7KwVFnuU+UsMporfq6PD6aXSlawZlARiA3UywCTfMw==
+  dependencies:
+    "@nodable/entities" "^3.0.0"
+    fast-xml-builder "^1.2.0"
+    is-unsafe "^2.0.0"
+    path-expression-matcher "^1.6.2"
+    strnum "^2.4.1"
+    xml-naming "^0.3.0"
+
+feedsmith@2.9.0:
+  version "2.9.0"
+  resolved "https://registry.npmmirror.com/feedsmith/-/feedsmith-2.9.0.tgz#7d27a51b425b4da1c53db06f2ee5338843a9c9e6"
+  integrity sha512-TYucytOx4bTrD4ON0iuJG9y0Me7fiT0EZ+7MIE0xptvd8TL6nY0Z1jVPa9W39WMJUtPqV2r27TQxL/z5DCCmdA==
+  dependencies:
+    entities "^7.0.0"
+    fast-xml-parser "^5.3.3"
 
 filelist@^1.0.4:
   version "1.0.6"
@@ -754,12 +797,29 @@ hexo-generator-category@^2.0.0:
   dependencies:
     hexo-pagination "3.0.0"
 
+hexo-generator-feed@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmmirror.com/hexo-generator-feed/-/hexo-generator-feed-4.0.0.tgz#6cc57eb8ec63c2ac75580c64a24055243bb6f42b"
+  integrity sha512-wG0SDBwJ60B+bcMQhArjSpw/bsuP1/4o9Ar+FnxTMRq5/SEZZlj7q/r7HI60olRf0eurqEm4Dm8yHfAMKQhkoA==
+  dependencies:
+    feedsmith "2.9.0"
+    hexo-util "4.0.0"
+
 hexo-generator-index@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmmirror.com/hexo-generator-index/-/hexo-generator-index-3.0.0.tgz"
   integrity sha512-83AuNN4cWdLVi//3ugR8E3kR6rrOwhXZt+hOCm1IjtIGj353/GlrtpMHpqZHU5kqipzj4miy9dweVdukXglVWw==
   dependencies:
     hexo-pagination "3.0.0"
+
+hexo-generator-sitemap@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.npmmirror.com/hexo-generator-sitemap/-/hexo-generator-sitemap-3.0.1.tgz#6183995f918330c06d99aa18ca9de81dd8055841"
+  integrity sha512-n+0KLNmq6TLbiZPTQF6NY5MbEem/O+DFx0lgQZNQcU4tdjXIZRrQJs+KRKeT66NTkdlYTqb4WwCxswLqQz0crA==
+  dependencies:
+    hexo-util "^2.1.0"
+    micromatch "^4.0.2"
+    nunjucks "^3.1.6"
 
 hexo-generator-tag@^2.0.0:
   version "2.0.0"
@@ -831,7 +891,20 @@ hexo-theme-landscape@^1.0.0:
   resolved "https://registry.npmmirror.com/hexo-theme-landscape/-/hexo-theme-landscape-1.1.0.tgz"
   integrity sha512-nszjixBEiEDZjf7glAGbHg0nKGHZdUDwzFVVdRDeu4FeHfGcY5CZNl9sF4vSligjnD8IwFXpDfx5E+GRmNKvWg==
 
-hexo-util@^2.7.0:
+hexo-util@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmmirror.com/hexo-util/-/hexo-util-4.0.0.tgz#23f69597aa200ee5612a4fd986cf7d7b5bcc6ea2"
+  integrity sha512-oXKXBs1HZ2Wu/eq0paAVqtCmAEcqJPZ4xxSVRuwAplm1hFU41Ul53WA5bmYMEz9Dp+OJ/SdchjXRmYlbGJdt3w==
+  dependencies:
+    camel-case "^4.1.2"
+    cross-spawn "^7.0.3"
+    deepmerge "^4.2.2"
+    highlight.js "^11.6.0"
+    htmlparser2 "^10.0.0"
+    prismjs "^1.29.0"
+    strip-indent "^3.0.0"
+
+hexo-util@^2.1.0, hexo-util@^2.7.0:
   version "2.7.0"
   resolved "https://registry.npmmirror.com/hexo-util/-/hexo-util-2.7.0.tgz"
   integrity sha512-hQM3h34nhDg0bSe/Tg1lnpODvNkz7h2u0+lZGzlKL0Oufp+5KCAEUX9wal7/xC7ax3/cwEn8IuoU75kNpZLpJQ==
@@ -912,6 +985,16 @@ html-minifier-terser@^7.2.0:
     param-case "^3.0.4"
     relateurl "^0.2.7"
     terser "^5.15.1"
+
+htmlparser2@^10.0.0:
+  version "10.1.0"
+  resolved "https://registry.npmmirror.com/htmlparser2/-/htmlparser2-10.1.0.tgz#fe3f2e12c73b6e462d4e10395db9c1119e4d6ae4"
+  integrity sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==
+  dependencies:
+    domelementtype "^2.3.0"
+    domhandler "^5.0.3"
+    domutils "^3.2.2"
+    entities "^7.0.1"
 
 htmlparser2@^7.0.0:
   version "7.2.0"
@@ -1027,6 +1110,11 @@ is-potential-custom-element-name@^1.0.1:
   resolved "https://registry.npmmirror.com/is-potential-custom-element-name/-/is-potential-custom-element-name-1.0.1.tgz"
   integrity sha512-bCYeRA2rVibKZd+s2625gGnGF/t7DSqDs4dP7CrLA1m7jKWz6pps0LpYLJN8Q64HtmPKJ1hrN3nzPNKFEKOUiQ==
 
+is-unsafe@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmmirror.com/is-unsafe/-/is-unsafe-2.0.0.tgz#c0dce4e06742662dde26360160e414ea487da2e9"
+  integrity sha512-2LdV822R+wmI86unXA93WCFpL6g+av8ynWk0nrHyJqGop5VoocYsSLFgN8jrfalT6iGeLNM4KXuVSsULP53kEA==
+
 is-wsl@^2.2.0:
   version "2.2.0"
   resolved "https://registry.npmmirror.com/is-wsl/-/is-wsl-2.2.0.tgz"
@@ -1126,7 +1214,7 @@ micro-memoize@^4.1.2:
   resolved "https://registry.npmmirror.com/micro-memoize/-/micro-memoize-4.2.0.tgz"
   integrity sha512-dRxIsNh0XosO9sd3aASUabKOzG9dloLO41g74XUGThpHBoGm1ttakPT5in14CuW/EDedkniaShFHbymmmKGOQA==
 
-micromatch@^4.0.4:
+micromatch@^4.0.2, micromatch@^4.0.4:
   version "4.0.8"
   resolved "https://registry.npmmirror.com/micromatch/-/micromatch-4.0.8.tgz"
   integrity sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==
@@ -1249,7 +1337,7 @@ normalize-path@^3.0.0, normalize-path@~3.0.0:
   resolved "https://registry.npmmirror.com/normalize-path/-/normalize-path-3.0.0.tgz"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
-nunjucks@^3.2.3:
+nunjucks@^3.1.6, nunjucks@^3.2.3:
   version "3.2.4"
   resolved "https://registry.npmmirror.com/nunjucks/-/nunjucks-3.2.4.tgz"
   integrity sha512-26XRV6BhkgK0VOxfbU5cQI+ICFUtMLixv1noZn1tGU38kQH5A5nmmbk/O45xdyBhD1esk47nKrY0mvQpZIhRjQ==
@@ -1325,6 +1413,11 @@ pascal-case@^3.1.2:
   dependencies:
     no-case "^3.0.4"
     tslib "^2.0.3"
+
+path-expression-matcher@^1.6.2:
+  version "1.6.2"
+  resolved "https://registry.npmmirror.com/path-expression-matcher/-/path-expression-matcher-1.6.2.tgz#567c73c07197e9dcef24e90edcdc571056599168"
+  integrity sha512-enSlaiat05iasnzmgNxRj8reFdj3puY2QpNgP1aPIaVfT6nn9ICuPoFlKHk8EN22HcwewshO+mN2DGbkCEOtqQ==
 
 path-is-absolute@^1.0.0:
   version "1.0.1"
@@ -1551,6 +1644,13 @@ strip-indent@^3.0.0:
   dependencies:
     min-indent "^1.0.0"
 
+strnum@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.npmmirror.com/strnum/-/strnum-2.4.1.tgz#85417f683113badea0fe7e17227676f889ff7e58"
+  integrity sha512-M9eUSMT2dCB2cTNPG7UYj6KuK7RJR2SN2+yCV/fTW3xzTCS6EaGZ5pSMgDIjB7r8zSfTGk+dvvn9rTjpVS9Mwg==
+  dependencies:
+    anynum "^1.0.1"
+
 stylus@^0.62.0:
   version "0.62.0"
   resolved "https://registry.npmmirror.com/stylus/-/stylus-0.62.0.tgz"
@@ -1738,6 +1838,11 @@ xml-name-validator@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmmirror.com/xml-name-validator/-/xml-name-validator-4.0.0.tgz"
   integrity sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==
+
+xml-naming@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.npmmirror.com/xml-naming/-/xml-naming-0.3.0.tgz#46c1e18bfe2858479982dd2accf34d16e749eda2"
+  integrity sha512-ghig2TBE/H11aOVgmahA3MhimvkBr6JIYknH/Dhdk10nXwdbIqBJsbfMxpvFPG8bAw77gN29aQWvKpmVoPlvPQ==
 
 xmlchars@^2.2.0:
   version "2.2.0"
