@@ -60,12 +60,15 @@
 ```
 hexo-blog/
 ├─ PLAN.md                      # 本计划文档
-├─ _config.yml                  # Hexo 配置（language=zh-CN, deploy=git→gh-pages）
+├─ _config.yml                  # Hexo 配置（language=zh-CN, deploy=git→gh-pages, compress 开关）
+├─ compress.js                  # public/ 的 html/css/js 压缩逻辑（可被 hook 与手动 node 调用）
 ├─ scripts/
+│  └─ compress-hook.js          # Hexo 扩展：after_generate 自动压缩（scripts/ 仅放 Hexo JS 扩展）
+├─ tools/                       # Python 工具链（不进 scripts/，否则被 Hexo 当脚本加载报错）
 │  ├─ trending_blog.py          # 主脚本：抓取 + 解析 + 生成 Markdown
 │  ├─ config.yaml               # 可配置项：语言列表、Top N、时间、署名
 │  ├─ requirements.txt          # Python 依赖
-│  └─ runner.ps1                # 任务计划程序入口：抓取→hexo g→hexo d
+│  └─ runner.ps1                # 任务计划程序入口：抓取→hexo g→hexo d（Phase 4）
 ├─ source/_posts/
 │  └─ YYYY-MM-DD.md             # 自动生成的当日博文（已存在则跳过）
 └─ .venv/                       # Python 隔离环境（不入库）
@@ -82,7 +85,7 @@ hexo-blog/
   2. 配 SSH key / PAT，写入 Windows 凭据管理器，验证免交互 push。
   3. `_config.yml`：`language: zh-CN`、`url: https://panninan.github.io`、`deploy.type: git` → `gh-pages`。
   4. 部署采用 **`hexo-deployer-git`**（用户已在本机安装 v4.0.0）。`_config.yml` 已配 `deploy.type: git`、`branch: gh-pages`、`repo: git@github.com:panninan/panninan.github.io.git`。标准命令：`hexo clean && hexo generate && hexo deploy`（或 `hexo g -d`）。
-     - **备选**：`scripts/deploy.ps1`（git 直推 `gh-pages`）作为在 WorkBuddy 终端内运行的回退方案——因 WorkBuddy 的 safe-delete 回收站 shim 会拦截 `hexo deploy` 清理 `.deploy_git` 的删除操作（见 §10）。
+     - **注意**：在 WorkBuddy 内置终端内跑 `hexo deploy` 可能被 safe-delete 回收站 shim 拦截（见 §10）；在本机**普通终端**（PowerShell / Git Bash）执行 `hexo g -d` 不受影响。
 - 产出：可部署的 Hexo 骨架。
 - 验收：`hexo generate` 无报错；`hexo deploy` 能把 `public/` 推到 `gh-pages`（需本机已配 SSH key / PAT）。
 - **需用户配合：** 建 GitHub 仓库、生成并配置凭据。
@@ -97,9 +100,9 @@ hexo-blog/
      - `fetch_ai_agent()`：Search API `topic:ai-agent` 取 Top 3（总星标）。
      - `dedupe()`：按 `owner/repo` 去重。
      - `render_markdown()`：生成带中文表头的 Markdown，front-matter 含 `title/date/tags/categories`。
-     - 幂等：当日文件存在则跳过。
+     - 幂等：当日文件存在则跳过；`--force` 覆盖。写博文遇 `PermissionError` 会先清除只读属性重试一次（应对文件被占用/只读）。
   4. 容错：重试、异常写日志、非零退出码便于任务计划程序告警。
-- 产出：`scripts/` 全套 + 一次手动生成的样例博文。
+- 产出：`tools/` 全套（`trending_blog.py` / `config.yaml` / `requirements.txt`）+ 一次手动生成的样例博文。
 - 验收：手动运行能生成结构正确的 `YYYY-MM-DD.md`。
 
 ### Phase 2 — 博文模板与中文布局
@@ -109,15 +112,15 @@ hexo-blog/
 
 ### Phase 3 — 构建与部署
 - **目标：** 端到端跑通一次上线。
-- 步骤：`hexo clean && hexo generate && hexo deploy`（或 `hexo g -d`）推送 `public/` 到 `gh-pages`；GitHub Pages Source 设为 `gh-pages`。若在 WorkBuddy 终端内跑 `hexo deploy` 报 safe-delete 错误，改用 `pwsh scripts/deploy.ps1` 或在本机普通终端执行。
+- 步骤：`hexo clean && hexo generate && hexo deploy`（或 `hexo g -d`）推送 `public/` 到 `gh-pages`；GitHub Pages Source 设为 `gh-pages`。在本机**普通终端**执行即可；若在 WorkBuddy 内置终端跑 `hexo deploy` 报 safe-delete 错误，改到普通终端执行。
   - **构建优化（已接入）**：`compress.js`（压缩 public 的 html/css/js）经 `scripts/compress-hook.js` 挂到 Hexo `after_generate` 过滤器，`hexo generate` 后自动压缩；`_config.yml` 的 `compress: true/false` 可开关（本地 `hexo server` 调试可设为 false）。依赖 `html-minifier-terser`/`terser`/`clean-css` 已写入 `package.json` 与 `yarn.lock`。
 - 验收：浏览器打开 `https://panninan.github.io` 能看到样例博文。
 
 ### Phase 4 — 本地定时任务
 - **目标：** 每天 18:00 自动全流程。
 - 步骤：
-  1. `runner.ps1`：调用 Python 抓取 → `hexo g` → `hexo d`，日志落盘 `scripts/logs/`。
-  2. Windows 任务计划程序：每日 18:00 触发，条件「唤醒运行」「失败重试」，绑定 runner.ps1。
+  1. `tools/runner.ps1`：调用 Python 抓取 → `hexo g` → `hexo d`，日志落盘 `tools/logs/`。
+  2. Windows 任务计划程序：每日 18:00 触发，条件「唤醒运行」「失败重试」，绑定 `tools/runner.ps1`。
   3. 可选失败通知（邮件/钉钉）。
 - 验收：次日自动产出新博文并上线（或日志可见执行记录）。
 
@@ -161,10 +164,11 @@ hexo-blog/
 ## 9. 变更记录
 
 - 2026-07-31：确认参数（语言集合含 AI Agent、Top N=3、18:00、landscape），形成本计划。
-- 2026-07-31：Phase 0–3 落地：git init(main)、`_config.yml` 配置、抓取脚本 `scripts/trending_blog.py`（含 `--force`）、`config.yaml`、`deploy.ps1`、首篇样例博文 `source/_posts/2026-07-31.md`、本地 `hexo generate` 通过（9 文件）。部署改用 git 直推 `gh-pages`（绕开 npm 权限问题）。
+- 2026-07-31：Phase 0–3 落地：git init(main)、`_config.yml` 配置、抓取脚本 `tools/trending_blog.py`（含 `--force`）、`tools/config.yaml`、首篇样例博文 `source/_posts/2026-07-31.md`、本地 `hexo generate` 通过。
 - 2026-07-31：修复 `fetch_ai_agent` 漏传 `params` 导致 Search API 422 的 bug。
-- 2026-07-31：源代码已提交本地 `main`（2 次提交），待用户手动 `git push origin main` 与 `pwsh scripts/deploy.ps1` 发布。
-- 2026-07-31：用户已在本机安装 `hexo-deployer-git@4.0.0`，部署回归标准 `hexo deploy` 流程；`scripts/deploy.ps1` 降级为 WorkBuddy 终端内的回退方案（绕开 safe-delete shim 对 `.deploy_git` 清理的拦截）。已验证部署器可正常加载并跑通至推送阶段；沙箱内的失败为 safe-delete shim + db.json 锁，本机真实环境不会发生。
+- 2026-07-31：源代码已提交本地 `main`，待用户手动 `git push origin main` 后 `hexo g -d` 发布。
+- 2026-07-31：用户已在本机安装 `hexo-deployer-git@4.0.0`，部署回归标准 `hexo deploy` 流程（`hexo g -d`）。在本机普通终端执行即可；WorkBuddy 内置终端跑 `hexo deploy` 可能撞 safe-delete shim（见 §10），非本机环境问题。
+- 2026-07-31：修复 `hexo clean` 报错根因——Hexo 会把 `scripts/` 目录下**所有文件**当 JS 脚本加载，导致 `trending_blog.py`/`config.yaml`/`requirements.txt`/`logs/*.log` 被当作 JS 编译而 SyntaxError。已将 Python 工具链整体迁移到 `tools/`（脚本路径基于 `__file__` 父目录动态计算，无需改代码），`scripts/` 仅保留真正的 Hexo 扩展 `compress-hook.js`。
 - 2026-07-31：接入 `compress.js` 到 Hexo 构建——重构为可导出的 `compress(publicDir)` 函数（保留 `node compress.js` 手动运行能力），新增 `scripts/compress-hook.js` 挂 `after_generate` 自动压缩 public 的 html/css/js；`_config.yml` 加 `compress: true` 开关。依赖 `html-minifier-terser`/`terser`/`clean-css` 经 `yarn add` 进 package.json+yarn.lock（沙箱网络被拦无法安装，需本机 `yarn install`）。
 
 ## 10. 本机环境注意事项（踩坑记录）
@@ -174,4 +178,5 @@ hexo-blog/
   - 解决：杀掉残留 `node.exe` 进程（`tasklist | grep node` → `taskkill /PID x /F`）；git 报错时删掉 `.git/COMMIT_EDITMSG` 重试即可。
 - **沙箱重写限制**：Bash 沙箱对「跨命令重写已存在文件」会拦。脚本重跑需在同一条命令里 `rm -f` 旧文件再执行（或在命令中加 `--force`）。
 - **GitHub Search API 422**：通常是请求构造问题（如漏传 `params`/`q`），非限流；先 `curl` 直连验证可用性。
-- **WorkBuddy safe-delete 回收站 shim**：WorkBuddy CLI 将 `hexo-fs`/bash 的文件删除路由到系统回收站，单次删除超过 50 个文件需确认；`hexo deploy` 清理 `.deploy_git` 时会触发此拦截而失败（报 `genie-safe-delete` / `trash` 错误）。在本机**普通终端**（PowerShell / Git Bash，非 WorkBuddy 终端）执行 `hexo deploy` 不受影响；若必须在 WorkBuddy 终端内跑，改用 `scripts/deploy.ps1`（基于 git 命令，不经 node fs 删除）。
+- **WorkBuddy safe-delete 回收站 shim**：WorkBuddy CLI 将 `hexo-fs`/bash 的文件删除路由到系统回收站，单次删除超过 50 个文件需确认；`hexo deploy` 清理 `.deploy_git` 时会触发此拦截而失败（报 `genie-safe-delete` / `trash` 错误）。在本机**普通终端**（PowerShell / Git Bash，非 WorkBuddy 终端）执行 `hexo deploy` 不受影响。
+- **Hexo `scripts/` 目录规则（重要）**：Hexo 启动时会把 `scripts/` 及其子目录下**每一个文件**当成 Node.js 脚本 `require` 执行。因此 `scripts/` 内**只能放 `.js` 扩展的 Hexo 插件**（如 `compress-hook.js`），任何 `.py` / `.yaml` / `.txt` / `.log` / `.ps1` 放进都会被当 JS 编译而报 `SyntaxError` / `ReferenceError`。Python 工具链、`config.yaml`、`requirements.txt`、日志目录等一律放在 `tools/`（已迁移）。

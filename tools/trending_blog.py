@@ -17,7 +17,9 @@ GitHub Trending 自动博客 — 抓取与博文生成
 
 import argparse
 import logging
+import os
 import pathlib
+import stat
 import re
 import sys
 import time
@@ -280,7 +282,16 @@ def main():
 
     # 4) 渲染并写入
     md = render_markdown(today, lang_all, ai_unique)
-    post_path.write_text(md, encoding="utf-8")
+    try:
+        post_path.write_text(md, encoding="utf-8")
+    except PermissionError:
+        # 目标文件可能被占用或设为只读（如被编辑器打开 / git 设为只读），清除只读后重试一次
+        try:
+            os.chmod(post_path, stat.S_IWRITE)
+            post_path.write_text(md, encoding="utf-8")
+        except OSError as e2:
+            logger.error("写入博文失败（权限/占用）：%s — %s", post_path, e2)
+            raise
     logger.info("已生成博文：%s（语言桶 %d 条，AI 桶 %d 条）", post_path, len(lang_all), len(ai_unique))
     return 0
 

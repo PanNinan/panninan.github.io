@@ -3,7 +3,7 @@ public/
 .deploy_git/
 .venv/
 db.json
-scripts/logs/
+tools/logs/
 *.log
 .DS_Store
 .idea/
