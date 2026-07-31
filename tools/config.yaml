@@ -5,8 +5,8 @@
 languages:
   - Python
   - Go
+  - PHP
   - Rust
-  - TypeScript
 
 # 每个语言桶取前 N 个（按今日新增星标降序）
 top_n: 3
