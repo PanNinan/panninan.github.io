@@ -1,0 +1,32 @@
+# GitHub Trending 自动博客 — 抓取配置
+# 所有项均可调整，修改后下次运行生效
+
+# 编程语言桶：在 GitHub Trending 语言页按「今日新增星标」抓取
+languages:
+  - Python
+  - Go
+  - Rust
+  - TypeScript
+
+# 每个语言桶取前 N 个（按今日新增星标降序）
+top_n: 3
+
+# 时间窗口：daily / weekly / monthly
+since: daily
+
+# AI Agent 精选桶：GitHub Search API 按总星标取前 N
+# 注意：Trending 不支持「按主题的趋势」，此处用 topic 检索，按总星标排序
+ai_agent_topic: ai-agents
+ai_agent_top_n: 3
+
+# 抓取设置
+user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+timeout: 20
+max_retries: 3
+retry_backoff: 3
+
+# 可选：GitHub Token（提升 Search API 限额 60→5000/h）。留空则用未认证额度
+github_token: ""
+
+# 若当日博文已存在，是否覆盖（默认 false = 跳过，避免重复发文）
+overwrite: false
