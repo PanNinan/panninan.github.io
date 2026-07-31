@@ -1,0 +1,6 @@
+navbar:
+  blog_title: "GitHub 每日热门"   # 想让导航栏与站名一致就这样写，或换成别的
+index:
+  slogan:
+    enable: true
+    text: "每日自动聚合 GitHub Trending 与 AI Agent 精选"   # 首页副标题

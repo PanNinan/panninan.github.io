@@ -11,11 +11,6 @@ const IGNORE_DIRS = ['node_modules', '.git', '.vscode', 'dist', '.idea'];
 
 const cleanCss = new CleanCSS({ level: 2 });
 
-// 创建目录
-function ensureDir(dir) {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-}
-
 // HTML压缩配置
 const htmlOpts = {
     collapseWhitespace: true,
@@ -28,21 +23,33 @@ const htmlOpts = {
     minifyURLs: true
 };
 
+// ---- 字符串级压缩（供 after_render 钩子逐文件调用，避免依赖 public/ 落盘时机）----
+async function compressHtml(str) {
+    return htmlMinify(str, htmlOpts);
+}
+async function compressCss(str) {
+    return cleanCss.minify(str).styles;
+}
+async function compressJs(str) {
+    const ret = await terserMinify(str);
+    if (ret.error) throw ret.error;
+    return ret.code;
+}
+
+// 文件级处理（compress(publicDir) 与 node compress.js 手动调用）
 async function processFile(srcPath, outPath, ext) {
     const raw = fs.readFileSync(srcPath, 'utf8');
     let result;
 
     try {
         if (ext === '.html') {
-            result = await htmlMinify(raw, htmlOpts);
+            result = await compressHtml(raw);
         } else if (ext === '.js') {
-            const ret = await terserMinify(raw);
-            result = ret.code;
+            result = await compressJs(raw);
         } else if (ext === '.css') {
-            result = cleanCss.minify(raw).styles;
+            result = await compressCss(raw);
         }
 
-        ensureDir(path.dirname(outPath));
         fs.writeFileSync(outPath, result, 'utf8');
         console.log(`✅ ${path.relative(process.cwd(), srcPath)}`);
     } catch (err) {
@@ -62,7 +69,7 @@ async function walk(currentDir, base) {
 
         if (ent.isDirectory()) {
             if (IGNORE_DIRS.includes(ent.name)) continue;
-            ensureDir(outFullPath);
+            if (!fs.existsSync(outFullPath)) fs.mkdirSync(outFullPath, { recursive: true });
             await walk(fullPath, base);
         } else if (ent.isFile()) {
             const ext = path.extname(ent.name).toLowerCase();
@@ -86,13 +93,17 @@ async function compress(publicDir) {
         console.error(`[compress] 源目录不存在：${base}`);
         return;
     }
-    ensureDir(base);
+    if (!fs.existsSync(base)) fs.mkdirSync(base, { recursive: true });
     const start = Date.now();
     await walk(base, base);
     console.log(`\n🎉 [compress] 压缩完成，用时 ${Date.now() - start}ms`);
 }
 
+// 导出：文件级入口 + 字符串级入口（供 after_render 钩子复用）
 module.exports = compress;
+module.exports.compressHtml = compressHtml;
+module.exports.compressCss = compressCss;
+module.exports.compressJs = compressJs;
 
 // 直接运行时（node compress.js）仍可按旧方式手动压缩
 if (require.main === module) {

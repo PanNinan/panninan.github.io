@@ -63,7 +63,7 @@ hexo-blog/
 ├─ _config.yml                  # Hexo 配置（language=zh-CN, deploy=git→gh-pages, compress 开关）
 ├─ compress.js                  # public/ 的 html/css/js 压缩逻辑（可被 hook 与手动 node 调用）
 ├─ scripts/
-│  └─ compress-hook.js          # Hexo 扩展：after_generate 自动压缩（scripts/ 仅放 Hexo JS 扩展）
+│  └─ compress-hook.js          # Hexo 扩展：after_render(html/css/js) 逐文件压缩（关联隐患已解决）
 ├─ tools/                       # Python 工具链（不进 scripts/，否则被 Hexo 当脚本加载报错）
 │  ├─ trending_blog.py          # 主脚本：抓取 + 解析 + 生成 Markdown
 │  ├─ config.yaml               # 可配置项：语言列表、Top N、时间、署名
@@ -113,7 +113,7 @@ hexo-blog/
 ### Phase 3 — 构建与部署
 - **目标：** 端到端跑通一次上线。
 - 步骤：`hexo clean && hexo generate && hexo deploy`（或 `hexo g -d`）推送 `public/` 到 `gh-pages`；GitHub Pages Source 设为 `gh-pages`。在本机**普通终端**执行即可；若在 WorkBuddy 内置终端跑 `hexo deploy` 报 safe-delete 错误，改到普通终端执行。
-  - **构建优化（已接入）**：`compress.js`（压缩 public 的 html/css/js）经 `scripts/compress-hook.js` 挂到 Hexo `after_generate` 过滤器，`hexo generate` 后自动压缩；`_config.yml` 的 `compress: true/false` 可开关（本地 `hexo server` 调试可设为 false）。依赖 `html-minifier-terser`/`terser`/`clean-css` 已写入 `package.json` 与 `yarn.lock`。
+  - **构建优化（已接入）**：`compress.js`（压缩 public 的 html/css/js）经 `scripts/compress-hook.js` 挂到 Hexo `after_render`(html/css/js) 过滤器，`hexo generate` 后逐文件自动压缩；`_config.yml` 的 `compress: true/false` 可开关（本地 `hexo server` 调试可设为 false）。依赖 `html-minifier-terser`/`terser`/`clean-css` 已写入 `package.json` 与 `yarn.lock`。**关联隐患已解决**：原实现用 `after_generate` 扫描整目录，但在本环境该事件早于 `public/` 落盘触发，导致报"源目录不存在"且压缩实际为空操作；现已改为 `after_render` 在每文件渲染完、写盘前直接压缩返回，时机与落盘一致。
 - 验收：浏览器打开 `https://panninan.github.io` 能看到样例博文。
 
 ### Phase 4 — GitHub Actions 定时(云端自动化,替代本地任务计划程序)
