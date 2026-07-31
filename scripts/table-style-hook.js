@@ -1,5 +1,11 @@
 // Hexo 扩展脚本：给「GitHub 每日热门」博文里的表格注入专属样式。
 //
+// 开关与生效条件（与 compress-hook.js 的 compress 开关同模式）：
+//   1. _config.yml 中 `table_style: false` 时强制关闭（默认开启）；
+//   2. 仅在主主题为 landscape 时生效——注入的 CSS 作用域是 landscape 的
+//      `.article-entry` 容器，其他主题（NexT/Fluid/Cactus）内容容器 class
+//      不同，注入后不生效，故直接跳过，避免无效注入。
+//
 // 为什么用 after_render:html 而不是 after_generate？
 //   - landscape 是 npm 主题（node_modules/hexo-theme-landscape），不能改其文件；
 //   - 该主题布局没有 inject_point，_config.yml 的 inject 不生效；
@@ -56,10 +62,23 @@ const TABLE_CSS = `
 
 hexo.extend.filter.register('after_render:html', function (str) {
   if (typeof str !== 'string') return str;
+
+  // 配置开关：_config.yml 中 table_style: false 时关闭（默认开启）
+  if (hexo.config.table_style === false) {
+    return str;
+  }
+
+  // 主题门禁：注入的 CSS 仅对 landscape 的 .article-entry 容器有效，
+  // 其他主题目容器 class 不同，注入无意义，直接跳过。
+  if (hexo.config.theme !== 'landscape') {
+    return str;
+  }
+
   // 仅当该页含趋势表（表头含「星标」字样）且尚未注入时才处理
   if (str.indexOf('今日星标') === -1 && str.indexOf('总星标') === -1) return str;
   if (str.indexOf('trending-table-style') !== -1) return str;
   const styleTag = `<style id="trending-table-style">${TABLE_CSS}</style>`;
+  hexo.log.info('[table-style] 已注入趋势表样式');
   if (str.indexOf('</head>') !== -1) {
     return str.replace('</head>', styleTag + '\n</head>');
   }

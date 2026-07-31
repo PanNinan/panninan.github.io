@@ -3,10 +3,10 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo-blog
-subtitle: ''
-description: ''
-keywords:
+title: GitHub 每日热门
+subtitle: 每日自动聚合 GitHub Trending 热门开源项目与 AI Agent 精选
+description: 基于 Hexo 与 GitHub Actions 的自动化博客，每日抓取 GitHub Trending，按编程语言与 AI Agent 主题聚合当日热门开源项目，呈现星标增量与总星标数据。
+keywords: [GitHub, Trending, 开源, 热门项目, AI Agent, 自动化博客, Hexo, 每日更新]
 author: PanNinan
 language: zh-CN
 timezone: 'Asia/Shanghai'
@@ -96,7 +96,7 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: next
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
@@ -108,3 +108,7 @@ deploy:
 # 构建后压缩 public/ 下的 html/css/js（见 scripts/compress-hook.js）
 # 设为 false 可关闭（例如本地 hexo server 调试时想保留可读性）
 compress: true
+
+# 趋势表专属样式注入（见 scripts/table-style-hook.js）
+# 仅在主主题为 landscape 时生效；设为 false 可强制关闭
+table_style: false

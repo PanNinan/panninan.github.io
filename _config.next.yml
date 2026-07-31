@@ -1,0 +1,21 @@
+# NexT 主题配置（站点级覆盖层，优先级高于 themes/next/_config.yml）
+# 文档：https://theme-next.js.org/docs/
+# 说明：本文件不改动主题内部文件，便于主题升级与回退 landscape。
+
+# 布局方案：Gemini 为双栏（左内容 / 右目录+边栏），适合数据表格阅读
+scheme: Gemini
+
+# 顶部导航
+menu:
+  home: / || fa fa-home
+  archives: /archives/ || fa fa-archive
+  categories: /categories/ || fa fa-th
+  tags: /tags/ || fa fa-tags
+
+# 暂未接入第三方评论系统
+comments:
+  enable: false
+
+# 侧栏显示时机：文章页显示（post），首页不显示
+sidebar:
+  display: post
