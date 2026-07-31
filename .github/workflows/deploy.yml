@@ -1,0 +1,76 @@
+name: Daily Trending Blog
+
+# 触发条件：
+#   1) 定时：每天 UTC 10:00 = 北京时间 18:00
+#   2) 手动：仓库 Actions 页的 "Run workflow" 按钮
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+# 赋予写入仓库内容的权限（用于提交博文 + 推送 gh-pages）
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # ---------- 1) 生成当日博文 ----------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install -r tools/requirements.txt
+
+      - name: Generate daily trending post
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # 提升 Search API 限额（脚本自动读取）
+        run: python tools/trending_blog.py
+
+      - name: Commit post back to main
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add source/_posts/
+          if git diff --cached --quiet; then
+            echo "无新博文（今日已生成或抓取失败），跳过提交"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: daily trending post $(date +%F)"
+            git push origin main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ---------- 2) 构建并部署到 gh-pages ----------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Build site (hexo generate, 含 compress 钩子)
+        run: npx hexo generate
+
+      - name: Deploy to GitHub Pages (gh-pages 分支)
+        # 仅在「有新博文」或「手动触发」时部署，避免无意义的重复提交
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: 'deploy: ${{ github.event_name }} ${{ github.run_id }}'

@@ -12,11 +12,11 @@
 **端到端数据流：**
 
 ```
-本地定时任务(18:00)
+GitHub Actions 定时(UTC 10:00 = 北京时间 18:00)
    └─ 抓取脚本(Python)  →  github.com/trending/{lang}?since=daily + AI Agent 主题检索
-        └─ 生成 Markdown  →  source/_posts/YYYY-MM-DD.md
+        └─ 生成 Markdown  →  source/_posts/YYYY-MM-DD.md（提交回 main）
              └─ hexo generate  →  public/
-                  └─ hexo deploy  →  gh-pages 分支  →  GitHub Pages 上线
+                  └─ peaceiris 部署  →  gh-pages 分支  →  GitHub Pages 上线
 ```
 
 ---
@@ -25,14 +25,14 @@
 
 | 维度 | 决策 | 说明 |
 |---|---|---|
-| 运行方式 | 本地定时任务 | Windows 任务计划程序每日触发，非 GitHub Actions |
+| 运行方式 | GitHub Actions 定时 | 云端每日触发，无需本机常开，非本地任务计划程序 |
 | 内容深度 | 纯数据聚合 | 不调用 LLM，零 API 成本，结果确定 |
 | 语言 | 中文为主 | 站点 UI 与博文表头中文；项目名/原描述保留英文原文 |
 | 筛选逻辑 | 选项 1+2 | 在指定语言内按「当日 star 增量」降序取 Top N，再合并去重 |
 | 目标语言集合 | Python、Go、Rust、TypeScript | 4 种编程语言，通过 trending 语言页抓取 |
 | AI Agent 桶 | 额外 1 个「AI Agent 精选」 | 见 §3 关键技术说明（非语言，单独处理） |
 | Top N | 每语言取 3，合并后去重 | 4 语言 = 12 篇上限，+AI Agent 3 篇 |
-| 运行时间 | 18:00（北京时间） | 任务计划程序每日 18:00 触发 |
+| 运行时间 | 18:00（北京时间） | Actions cron `0 10 * * *`（UTC 10:00 = 北京时间 18:00） |
 | 主题 | 先保留 landscape | 跑通后再评估切换 cactus |
 
 ---
@@ -68,7 +68,7 @@ hexo-blog/
 │  ├─ trending_blog.py          # 主脚本：抓取 + 解析 + 生成 Markdown
 │  ├─ config.yaml               # 可配置项：语言列表、Top N、时间、署名
 │  ├─ requirements.txt          # Python 依赖
-│  └─ runner.ps1                # 任务计划程序入口：抓取→hexo g→hexo d（Phase 4）
+│  └─ .github/workflows/deploy.yml  # GitHub Actions：每日抓取→提交→构建→部署 gh-pages（Phase 4）
 ├─ source/_posts/
 │  └─ YYYY-MM-DD.md             # 自动生成的当日博文（已存在则跳过）
 └─ .venv/                       # Python 隔离环境（不入库）
@@ -116,13 +116,20 @@ hexo-blog/
   - **构建优化（已接入）**：`compress.js`（压缩 public 的 html/css/js）经 `scripts/compress-hook.js` 挂到 Hexo `after_generate` 过滤器，`hexo generate` 后自动压缩；`_config.yml` 的 `compress: true/false` 可开关（本地 `hexo server` 调试可设为 false）。依赖 `html-minifier-terser`/`terser`/`clean-css` 已写入 `package.json` 与 `yarn.lock`。
 - 验收：浏览器打开 `https://panninan.github.io` 能看到样例博文。
 
-### Phase 4 — 本地定时任务
-- **目标：** 每天 18:00 自动全流程。
-- 步骤：
-  1. `tools/runner.ps1`：调用 Python 抓取 → `hexo g` → `hexo d`，日志落盘 `tools/logs/`。
-  2. Windows 任务计划程序：每日 18:00 触发，条件「唤醒运行」「失败重试」，绑定 `tools/runner.ps1`。
-  3. 可选失败通知（邮件/钉钉）。
-- 验收：次日自动产出新博文并上线（或日志可见执行记录）。
+### Phase 4 — GitHub Actions 定时(云端自动化,替代本地任务计划程序)
+- **目标：** 每天北京时间 18:00 自动跑完「抓取 → 提交源码 → 构建 → 部署」,本机无需常开。
+- 实现：`.github/workflows/deploy.yml`
+  - 触发：`schedule`（`cron: '0 10 * * *'` = UTC 10:00 = 北京时间 18:00）+ `workflow_dispatch`(手动按钮)。
+  - 权限：`permissions: contents: write`（提交博文到 main + 推送 gh-pages）。
+  - 步骤：
+    1. `actions/checkout@v4` 拉 `main`（`fetch-depth: 0` 以支持回推）。
+    2. `setup-python` + `pip install -r tools/requirements.txt` → `python tools/trending_blog.py`（传 `GITHUB_TOKEN` 提升 Search API 限额）。
+    3. 把新博文 `git commit` + `push` 回 `main`（无新博文则跳过）。
+    4. `setup-node` + `npm install` → `npx hexo generate`（自动跑 compress 钩子）。
+    5. `peaceiris/actions-gh-pages@v4` 把 `public/` 推到 `gh-pages`（仅在有新博文或手动触发时部署）。
+  - 脚本加固：抓取**全部失败**时 `trending_blog.py` 返回非零 → 工作流失败告警,且不生成空博文。
+- 验收：次日自动产出新博文并上线;Actions 页可见运行记录与绿色对勾。
+- 注意：本地手动 `hexo deploy`(SSH)与 CI 的 peaceiris 都写 `gh-pages`,以最后一次为准;日常交给 CI 即可,本地仅作调试。
 
 ### Phase 5 — 主题与体验优化（可选）
 - 保留 landscape 跑通；后续评估切换 cactus（轻量、加载快）。
@@ -156,7 +163,7 @@ hexo-blog/
 
 - **Trending 反爬/改版：** 加 UA、重试；保留日志；改版时更新解析选择器。
 - **Search API 限流：** 每日仅数次请求，未认证 60/h 足够；必要时用 PAT 提额。
-- **本地关机漏跑：** 任务计划程序设失败重试；可接受偶尔缺更（非关键业务）。
+- **CI 延迟/漏跑：** GitHub Actions 定时任务可能在整点后延迟数分钟至数小时排队（非关键业务，可接受）；抓取全失败时工作流会标红失败，可在 Actions 页查看并重跑(`workflow_dispatch`)。
 - **回退：** 任何阶段均可 `git revert`；`gh-pages` 分支独立，不影响源码。
 
 ---
@@ -170,6 +177,7 @@ hexo-blog/
 - 2026-07-31：用户已在本机安装 `hexo-deployer-git@4.0.0`，部署回归标准 `hexo deploy` 流程（`hexo g -d`）。在本机普通终端执行即可；WorkBuddy 内置终端跑 `hexo deploy` 可能撞 safe-delete shim（见 §10），非本机环境问题。
 - 2026-07-31：修复 `hexo clean` 报错根因——Hexo 会把 `scripts/` 目录下**所有文件**当 JS 脚本加载，导致 `trending_blog.py`/`config.yaml`/`requirements.txt`/`logs/*.log` 被当作 JS 编译而 SyntaxError。已将 Python 工具链整体迁移到 `tools/`（脚本路径基于 `__file__` 父目录动态计算，无需改代码），`scripts/` 仅保留真正的 Hexo 扩展 `compress-hook.js`。
 - 2026-07-31：接入 `compress.js` 到 Hexo 构建——重构为可导出的 `compress(publicDir)` 函数（保留 `node compress.js` 手动运行能力），新增 `scripts/compress-hook.js` 挂 `after_generate` 自动压缩 public 的 html/css/js；`_config.yml` 加 `compress: true` 开关。依赖 `html-minifier-terser`/`terser`/`clean-css` 经 `yarn add` 进 package.json+yarn.lock（沙箱网络被拦无法安装，需本机 `yarn install`）。
+- 2026-07-31：Phase 4 改为 **GitHub Actions 定时**(不再用本地任务计划程序)。新增 `.github/workflows/deploy.yml`：`cron 0 10 * * *`(UTC 10:00=北京时间 18:00)+`workflow_dispatch`；自动抓取→提交博文回 main→`hexo generate`→`peaceiris/actions-gh-pages@v4` 推 `gh-pages`(用 `GITHUB_TOKEN`,无需 SSH key)。脚本加固：`github_token` 支持读 `GITHUB_TOKEN` 环境变量；抓取全失败时返回非零让 CI 失败告警且不生成空博文。部署方式收敛为两条独立路径——本地手动 `hexo deploy`(SSH) 与 CI(peaceiris token),互不冲突。
 
 ## 10. 本机环境注意事项（踩坑记录）
 

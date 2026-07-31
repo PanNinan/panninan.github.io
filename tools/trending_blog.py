@@ -141,7 +141,7 @@ def fetch_ai_agent(cfg):
         "User-Agent": cfg["user_agent"],
         "Accept": "application/vnd.github+json",
     }
-    token = cfg.get("github_token")
+    token = cfg.get("github_token") or os.environ.get("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"Bearer {token}"
     resp = http_get(
@@ -279,6 +279,11 @@ def main():
     # 3) 去重合并（AI 桶排除已在语言桶出现的）
     seen = {r["repo_path"] for r in lang_all}
     ai_unique = [r for r in ai_all if r["repo_path"] not in seen]
+
+    # 3.5) 抓取全失败时终止，避免生成空博文（CI 据此判断失败）
+    if not lang_all and not ai_unique:
+        logger.error("所有抓取均失败，未获取到任何项目，终止（不生成空博文）")
+        return 1
 
     # 4) 渲染并写入
     md = render_markdown(today, lang_all, ai_unique)
