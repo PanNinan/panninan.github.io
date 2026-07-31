@@ -110,6 +110,7 @@ hexo-blog/
 ### Phase 3 — 构建与部署
 - **目标：** 端到端跑通一次上线。
 - 步骤：`hexo clean && hexo generate && hexo deploy`（或 `hexo g -d`）推送 `public/` 到 `gh-pages`；GitHub Pages Source 设为 `gh-pages`。若在 WorkBuddy 终端内跑 `hexo deploy` 报 safe-delete 错误，改用 `pwsh scripts/deploy.ps1` 或在本机普通终端执行。
+  - **构建优化（已接入）**：`compress.js`（压缩 public 的 html/css/js）经 `scripts/compress-hook.js` 挂到 Hexo `after_generate` 过滤器，`hexo generate` 后自动压缩；`_config.yml` 的 `compress: true/false` 可开关（本地 `hexo server` 调试可设为 false）。依赖 `html-minifier-terser`/`terser`/`clean-css` 已写入 `package.json` 与 `yarn.lock`。
 - 验收：浏览器打开 `https://panninan.github.io` 能看到样例博文。
 
 ### Phase 4 — 本地定时任务
@@ -164,6 +165,7 @@ hexo-blog/
 - 2026-07-31：修复 `fetch_ai_agent` 漏传 `params` 导致 Search API 422 的 bug。
 - 2026-07-31：源代码已提交本地 `main`（2 次提交），待用户手动 `git push origin main` 与 `pwsh scripts/deploy.ps1` 发布。
 - 2026-07-31：用户已在本机安装 `hexo-deployer-git@4.0.0`，部署回归标准 `hexo deploy` 流程；`scripts/deploy.ps1` 降级为 WorkBuddy 终端内的回退方案（绕开 safe-delete shim 对 `.deploy_git` 清理的拦截）。已验证部署器可正常加载并跑通至推送阶段；沙箱内的失败为 safe-delete shim + db.json 锁，本机真实环境不会发生。
+- 2026-07-31：接入 `compress.js` 到 Hexo 构建——重构为可导出的 `compress(publicDir)` 函数（保留 `node compress.js` 手动运行能力），新增 `scripts/compress-hook.js` 挂 `after_generate` 自动压缩 public 的 html/css/js；`_config.yml` 加 `compress: true` 开关。依赖 `html-minifier-terser`/`terser`/`clean-css` 经 `yarn add` 进 package.json+yarn.lock（沙箱网络被拦无法安装，需本机 `yarn install`）。
 
 ## 10. 本机环境注意事项（踩坑记录）
 
