@@ -9,7 +9,7 @@ languages:
   - Rust
 
 # 每个语言桶取前 N 个（按今日新增星标降序）
-top_n: 3
+top_n: 5
 
 # 时间窗口：daily / weekly / monthly
 since: daily
@@ -17,7 +17,7 @@ since: daily
 # AI Agent 精选桶：GitHub Search API 按总星标取前 N
 # 注意：Trending 不支持「按主题的趋势」，此处用 topic 检索，按总星标排序
 ai_agent_topic: ai-agents
-ai_agent_top_n: 3
+ai_agent_top_n: 10
 
 # 抓取设置
 user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
