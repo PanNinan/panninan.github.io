@@ -104,3 +104,7 @@ deploy:
   type: git
   repo: git@github.com:panninan/panninan.github.io.git
   branch: gh-pages
+
+# 构建后压缩 public/ 下的 html/css/js（见 scripts/compress-hook.js）
+# 设为 false 可关闭（例如本地 hexo server 调试时想保留可读性）
+compress: true

@@ -5,8 +5,7 @@ const { minify: terserMinify } = require('terser');
 const CleanCSS = require('clean-css');
 
 // ========== 配置区 ==========
-const SRC_DIR = './public';       // 源文件夹
-const OUT_DIR = './public';      // 输出文件夹
+// 压缩对象：public 目录下的 html/css/js（其余文件原样复制）
 const IGNORE_DIRS = ['node_modules', '.git', '.vscode', 'dist', '.idea'];
 // ============================
 
@@ -45,25 +44,26 @@ async function processFile(srcPath, outPath, ext) {
 
         ensureDir(path.dirname(outPath));
         fs.writeFileSync(outPath, result, 'utf8');
-        console.log(`✅ ${srcPath} → ${outPath}`);
+        console.log(`✅ ${path.relative(process.cwd(), srcPath)}`);
     } catch (err) {
         console.error(`❌ 压缩失败 ${srcPath}:`, err.message);
-        // 出错时原样复制文件（可选，注释掉则不输出）
-        // fs.copyFileSync(srcPath, outPath);
+        // 出错时原样复制文件（避免博文丢失）
+        try { fs.copyFileSync(srcPath, outPath); } catch (e) { /* ignore */ }
     }
 }
 
-async function walk(dir) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+// 递归遍历：base 为顶层根目录（同时作为输出根，原地压缩）
+async function walk(currentDir, base) {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
     for (const ent of entries) {
-        const fullPath = path.join(dir, ent.name);
-        const relPath = path.relative(SRC_DIR, fullPath);
-        const outFullPath = path.join(OUT_DIR, relPath);
+        const fullPath = path.join(currentDir, ent.name);
+        const relPath = path.relative(base, fullPath);
+        const outFullPath = path.join(base, relPath);
 
         if (ent.isDirectory()) {
             if (IGNORE_DIRS.includes(ent.name)) continue;
             ensureDir(outFullPath);
-            await walk(fullPath);
+            await walk(fullPath, base);
         } else if (ent.isFile()) {
             const ext = path.extname(ent.name).toLowerCase();
             if (['.html', '.js', '.css'].includes(ext)) {
@@ -71,18 +71,33 @@ async function walk(dir) {
             } else {
                 // 非目标文件直接复制（图片、字体等）
                 fs.copyFileSync(fullPath, outFullPath);
-                console.log(`📄 复制 ${fullPath}`);
             }
         }
     }
 }
 
-(async function main() {
-    if (!fs.existsSync(SRC_DIR)) {
-        console.error(`源目录不存在：${SRC_DIR}`);
+/**
+ * 压缩 public 目录下的 html/css/js（原地覆盖）。
+ * @param {string} [publicDir] public 目录绝对路径；缺省取 ./public
+ */
+async function compress(publicDir) {
+    const base = publicDir || path.resolve(process.cwd(), 'public');
+    if (!fs.existsSync(base)) {
+        console.error(`[compress] 源目录不存在：${base}`);
         return;
     }
-    ensureDir(OUT_DIR);
-    await walk(SRC_DIR);
-    console.log('\n🎉 全部处理完成！');
-})();
+    ensureDir(base);
+    const start = Date.now();
+    await walk(base, base);
+    console.log(`\n🎉 [compress] 压缩完成，用时 ${Date.now() - start}ms`);
+}
+
+module.exports = compress;
+
+// 直接运行时（node compress.js）仍可按旧方式手动压缩
+if (require.main === module) {
+    compress().catch((e) => {
+        console.error('[compress] 运行失败:', e);
+        process.exit(1);
+    });
+}
